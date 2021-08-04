@@ -98,8 +98,9 @@ def main(dcm_path, save_path, windowCenter, windowWidth, top_dcm, top_cont, midd
     #name.sort(key=lambda x: int(str(''.join(list(filter(str.isdigit, x)))).lstrip('0')))
     idx_list = []
     for n in name:
-        ds = dcmread(dcm_path + n)
-        idx_list.append(int(ds.InstanceNumber))
+        if os.path.isfile(dcm_path + n):
+            ds = dcmread(dcm_path + n)
+            idx_list.append(int(ds.InstanceNumber))
     name = [name[i] for i in np.argsort(idx_list)]
     top_idx = name.index(top_dcm+'.dcm')
     mid_idx = name.index(middle_dcm+'.dcm')

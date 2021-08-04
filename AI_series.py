@@ -103,14 +103,15 @@ class U_Net():
         dcm_path = self.dicom_path
         name = os.listdir(dcm_path)
         for n_ in name:
-            # read image from dicom file
-            img, counts_most_hu, imgNum = Dicom_read.get_dcm_img(dcm_path + n_)
-            counts_most_hu_list.append(counts_most_hu)
-            img = img/255.
-            img = img.astype(np.float32)
-            image.append(img)
-            dcm_name.append(n_)
-            dcm_num.append(imgNum)           
+            if os.path.isfile(dcm_path + n_):
+                # read image from dicom file
+                img, counts_most_hu, imgNum = Dicom_read.get_dcm_img(dcm_path + n_)
+                counts_most_hu_list.append(counts_most_hu)
+                img = img/255.
+                img = img.astype(np.float32)
+                image.append(img)
+                dcm_name.append(n_)
+                dcm_num.append(imgNum)           
         image = np.expand_dims(np.array(image), axis=3) 
         return image, dcm_name, counts_most_hu_list, dcm_num
  

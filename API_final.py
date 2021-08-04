@@ -8,6 +8,7 @@ import os
 import AI_series
 import CV
 import TMB_Semi_automated
+import post_get
 
 app = Flask(__name__)
 CORS(app)
@@ -55,7 +56,8 @@ def AI_ser():
             
         else:
             series_gb         = series_id
-            image_path        = "./" + study_id + "/" + series_id + "/"#instance_id + "/" + patient_id + ".png"
+            series_id         = post_get.DicomRequests(series_id) #post&get
+            image_path        = "./" + series_id + "/"            #image_path        = "./" + study_id + "/" + series_id + "/"            
             name,coor,imgNum  = AI_series.main(image_path)
             series_coordinate = coor
             name_gb           = name
@@ -98,12 +100,12 @@ def CV_seg():
         instance_id  = str_url[5]
         coordinate   = int(str_url[6]),int(str_url[7])
         print(coordinate)
-        image_path   = './' + study_id + '/' + series_id + '/' + instance_id #+ '.dcm'
+        image_path   = './' + series_id + '/' + instance_id #image_path   = './' + study_id + '/' + series_id + '/' + instance_id 
         
     else:
         print("error")
      
-    
+    series_id  = post_get.DicomRequests(series_id) #post&get
     cv_contours = CV.region_growing_API(image_path, coordinate)
     
     cv_contours = (cv_contours).tolist()
@@ -176,7 +178,8 @@ def middle():
         study_id      = str_url[1]
         series_id     = str_url[3]
         instance_mid  = str_url[5]
-        D3_image_path   = './' + study_id + '/' + series_id + '/'
+        series_id     = post_get.DicomRequests(series_id) #post&get
+        D3_image_path   = './' + series_id + '/'#D3_image_path   = './' + study_id + '/' + series_id + '/'
         
     if 'WL' in request.args:
         WL_list = request.args['WL']
@@ -261,7 +264,8 @@ def dcm2vti():
         str_url      = number.split('-')
         study_id     = str_url[1]
         series_id    = str_url[3]
-        image_path   = './' + study_id + '/' + series_id + '/' 
+        series_id    = post_get.DicomRequests(series_id) #post&get
+        image_path   = './' + series_id + '/' #image_path   = './' + study_id + '/' + series_id + '/' 
         
         com_line = 'pvpython dcm2vti.py --input ' + image_path + ' --output ' + series_id
         os.system(com_line)
