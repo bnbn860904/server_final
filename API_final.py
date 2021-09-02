@@ -1,14 +1,18 @@
-from flask import Flask, send_file
+from flask import Flask, send_file ,send_from_directory
 from flask import jsonify, request
 import numpy as np
 from flask_cors import CORS
 import io
 import os
+import json
+import zipfile
 
 import AI_series
 import CV
 import TMB_Semi_automated
 import post_get
+import TMB_Semi_automated_noDraw
+import DB_AI 
 
 app = Flask(__name__)
 CORS(app)
@@ -111,9 +115,11 @@ def CV_seg():
     cv_contours = (cv_contours).tolist()
     B_list = []
     k = len(cv_contours)
-    for i in range(0, k):     
-        B_list += cv_contours[i]            
-        
+    for i in range(0, k):
+        if i % 5 == 0:  
+            B_list += cv_contours[i]            
+    
+    print('B_list',B_list)
     patient2 = {
         
     #"coordinate":[[140,110],[140,111]]
@@ -246,6 +252,43 @@ def start():
        
     return jsonify(mytest)  
 
+@app.route('/draw_back', methods=['GET'])  ## draw_back
+def draw_back():
+        
+    top = xy_array(coordinate_top)
+    #print(top)
+    mid = xy_array(coordinate_mid)
+    #print(mid)
+    bot = xy_array(coordinate_bot)
+    #print(bot)
+    
+    #print(WL)
+    L = int(WL[0])
+    W = int(WL[1])
+    
+    if 'number' in request.args:
+        number = request.args['number']
+        
+    instance_id   = number + '.dcm' 
+    print(instance_id)
+    
+    D3_contours, dcm_name_list = TMB_Semi_automated_noDraw.main( D3_image_path, './tmb_png/', L, W, instance_top, top, instance_mid, mid, instance_bot, bot)
+    
+    try:
+        index             = dcm_name_list.index(instance_id)
+        result            = D3_contours[index]
+        result            = (result).tolist()
+    except:
+        result = []
+    
+    print(dcm_name_list)
+    print(D3_contours)
+    mytest = {
+        "coordinate": result
+     }
+       
+    return jsonify(mytest) 
+    
 def xy_array(a_list):  
     A = []
     k = len(a_list)
@@ -299,8 +342,131 @@ def upload():
             io.BytesIO(bites.read()),
             mimetype='image/vti'
         )        
+ 
+@app.route('/pre_upload', methods=['GET'])
+def pre_upload():
+    
+    if 'number' in request.args:
+        number = request.args['number']
+        
+        str_url      = number.split('-')
+        study_id     = str_url[1]
+        series_id    = str_url[3] 
+        print(series_id)
+        series_id = post_get.DicomRequests(series_id)
+        
+    mytest = {}
+    return jsonify(mytest) 
+
+ 
+@app.route('/post_coor', methods=['POST','GET'])
+def post_coor():
+     
+     points = []
+     if request.method == 'POST':
+        number       = request.args['number']
+        str_url      = number.split('-')
+        series_id    = str_url[0]
+        instance_id  = str_url[1]
+        coor         = json.loads(request.data)
+        
+        for x in range(0, len(coor['data'])):
+            points.append(coor['data'][x]['handles']['points'])
+        
+        color = coor['data'][0]['color']
+
+        try:
+            os.mkdir('./coordinate/' + series_id)
+        except:
+            print('FileExists')  
+        with open('./coordinate/' + series_id + '/' + instance_id + '.json', 'w+') as fp:
+            try:
+                data = json.load(fp)
+                data[color]['uuid'] = coor['data'][0]['uuid']
+                data[color]['points'] = points
+                print('old')
+                
+            except:
+                data = {}
+                data[color] = {}
+                data[color]['uuid'] = coor['data'][0]['uuid']
+                data[color]['points'] = points
+                print('new')                
+                
+            json.dump(data, fp, indent=4)                
+       
+        return 'Hello 123'
+ 
+@app.route('/download_singleCV', methods=['GET'])
+def download_singleCV():
+    
+    if 'number' in request.args:
+        number = request.args['number']
+        str_url      = number.split('-')
+        series_id    = str_url[0]
+        instance_id  = str_url[1]
+    
+    CV_path = 'coordinate' + '/' + series_id   
+    return send_from_directory(CV_path, instance_id + '.json', as_attachment=True)
+ 
+@app.route('/download_series', methods=['GET'])
+def download_series():
+    
+    if 'number' in request.args:
+        number = request.args['number']
+        str_url      = number.split('-')
+        series_id    = str_url[0]
+        instance_id  = str_url[1]
+        
+    CV_path = 'coordinate' + '/' + series_id        
+    def zip_dir(path):
+        zf = zipfile.ZipFile('{}.zip'.format(path), 'w', zipfile.ZIP_DEFLATED)
+       
+        for root, dirs, files in os.walk(path):
+            for file_name in files:
+                zf.write(os.path.join(root, file_name))
+    print(series_id)        
+    zip_dir(CV_path)       
+    return send_from_directory('coordinate', series_id + '.zip', as_attachment=True)
+
+ 
+@app.route('/Pre_execute_AI', methods=['GET'])
+def Pre_execute_AI():
+    
+    if 'number' in request.args:
+        number = request.args['number']
+        #str_url      = number.split('-')
+        series_id    = number
+        
+        image_path        = "./" + series_id + "/"                
+        ID, coor, imgNum  = AI_series.main(image_path)
+        print("ID is",ID)
+        print("coor is",coor)
+        o                 = DB_AI.DB_AI_store(ID,coor)
+        
+    patient = {
+        
+     }     
+    
+    return jsonify(patient)
+        
+ 
+@app.route('/DB_AI_get', methods=['GET'])
+def DB_AI_get():
+    
+    if 'number' in request.args:
+        number = request.args['number']
+        instance_id    = number + '.dcm'
+        
+        result         = DB_AI.DB_AI_get(instance_id)
+        
+    patient = {
+        "liver":result,
+     }     
+    
+    return jsonify(patient)
     
 if __name__ == '__main__':
     app.debug = False
-    app.run(host='140.116.156.197', port=5000)    
+    app.run(host='0.0.0.0', port=5000)    
     

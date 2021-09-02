@@ -156,7 +156,7 @@ class U_Net():
             tumor_mask = np.squeeze(tumor_mask, axis=2)           
             tumor_mask = np.array(tumor_mask, np.uint8)
             
-            tumor_contours, hierarchy = cv2.findContours(tumor_mask, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+            tumor_contours, hierarchy = cv2.findContours(tumor_mask, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
             
             if len(tumor_contours) > 0:
                 dcm_name_list.append(dcm_name[index])

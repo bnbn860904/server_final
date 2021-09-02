@@ -99,6 +99,7 @@ def region_growing_API(patientID, mouse_position):
 
         contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
         cnt = contours[0]
+        #print('cnt',cnt)
         #cv2.drawContours(gray_three_channel, [cnt], 0, (0, 255, 0), 1)
     
     return cnt
