@@ -378,9 +378,19 @@ def post_coor():
         try:
             os.mkdir('./coordinate/' + series_id)
         except:
-            print('FileExists')  
+            print('FileExists')
+            
+        if os.path.isfile('./coordinate/' + series_id + '/' + instance_id + '.json'):
+            with open('./coordinate/' + series_id + '/' + instance_id + '.json', 'r') as fp:
+                data = json.load(fp)
+        else:
+            data = {}       
         with open('./coordinate/' + series_id + '/' + instance_id + '.json', 'w+') as fp:
-            try:
+            data[color] = {}
+            data[color]['uuid'] = coor['data'][0]['uuid']
+            data[color]['points'] = points
+            print('new')
+            '''try:
                 data = json.load(fp)
                 data[color]['uuid'] = coor['data'][0]['uuid']
                 data[color]['points'] = points
@@ -391,9 +401,9 @@ def post_coor():
                 data[color] = {}
                 data[color]['uuid'] = coor['data'][0]['uuid']
                 data[color]['points'] = points
-                print('new')                
+                print('new')'''               
                 
-            json.dump(data, fp, indent=4)                
+            json.dump(data, fp, indent=4)                      
        
         return 'Hello 123'
  
