@@ -450,8 +450,8 @@ def Pre_execute_AI():
         
         image_path        = "./" + series_id + "/"                
         ID, coor, imgNum  = AI_series.main(image_path)
-        print("ID is",ID)
-        print("coor is",coor)
+        #print("ID is",ID)
+        #print("coor is",coor)
         o                 = DB_AI.DB_AI_store(ID,coor)
         
     patient = {
@@ -472,6 +472,7 @@ def DB_AI_get():
         
     patient = {
         "liver":result,
+        "instance_id":number,
      }     
     
     return jsonify(patient)

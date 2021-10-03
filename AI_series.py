@@ -162,9 +162,18 @@ class U_Net():
                 dcm_name_list.append(dcm_name[index])
                 dcm_Num_list.append(imgNum[index])
                 
-                temp = np.concatenate(([tumor_contours[i] for i in range(len(tumor_contours))]), axis=0)
-                temp = np.squeeze(temp, axis=1)
-                tumor_contours_list.append(temp)    
+                print('tumor_contours.len is',len(tumor_contours))
+                #temp = np.concatenate(([tumor_contours[i] for i in range(len(tumor_contours))]), axis=0)
+                temp_list = []
+                for i in range(len(tumor_contours)):
+                    temp      = np.squeeze(tumor_contours[i], axis=1)
+                    print('temp1.shape is',temp.shape)
+                    temp_list.append(temp)  
+                    print('temp_list.len is',len(temp_list))                    
+                    #temp = np.squeeze(temp, axis=1)
+                    #print('temp2.shape is',temp.shape)
+                print('temp_list is',temp_list)
+                tumor_contours_list.append(temp_list)    
                 
                 # 存放預測結果
                 '''if self.plot:
@@ -180,6 +189,6 @@ class U_Net():
 def main(test_data_path):
     unet = U_Net(test_data_path)#, args.plot, args.liver_weight, args.tumor_weight)
     dcm_name_list, tumor_contours_list, dcm_Num_list = unet.tumor_test() # 測試腫瘤分割結果
-    print('DICOM name with liver tumor : ', dcm_name_list)
-    print('Liver tumor coordinate : ', tumor_contours_list)
+    #print('DICOM name with liver tumor : ', dcm_name_list)
+    #print('Liver tumor coordinate : ', tumor_contours_list)
     return dcm_name_list, tumor_contours_list, dcm_Num_list   
