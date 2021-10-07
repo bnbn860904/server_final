@@ -13,6 +13,7 @@ import TMB_Semi_automated
 import post_get
 import TMB_Semi_automated_noDraw
 import DB_AI 
+from pathlib import Path
 
 app = Flask(__name__)
 CORS(app)
@@ -473,6 +474,26 @@ def DB_AI_get():
     patient = {
         "liver":result,
         "instance_id":number,
+     }     
+    
+    return jsonify(patient)
+ 
+@app.route('/getInstance', methods=['GET'])
+def getInstance():
+    
+    if 'number' in request.args:
+        number      = request.args['number']
+        series_id   = number
+        
+        list1 = os.listdir('./'+series_id)
+        
+        instance_list = []
+        for n in range(1, len(list1)):
+            file = ('.').join(list1[n].split('.')[:-1])
+            instance_list.append(file)
+            
+    patient = {
+        "result":instance_list,
      }     
     
     return jsonify(patient)
