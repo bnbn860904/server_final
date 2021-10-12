@@ -497,7 +497,43 @@ def getInstance():
      }     
     
     return jsonify(patient)
+
+@app.route('/start_drawing2', methods=['GET'])  ## start_drawing2
+def start_drawing2():
+        
+    top = xy_array(coordinate_top)
+    mid = xy_array(coordinate_mid)
+    bot = xy_array(coordinate_bot)
+
+    L = int(WL[0])
+    W = int(WL[1])
     
+    if 'number' in request.args:
+        number = request.args['number']
+        
+    instance_id   = number + '.dcm' 
+    print(instance_id)
+    
+    D3_contours, dcm_name_list = TMB_Semi_automated_noDraw.main( D3_image_path, './tmb_png/', L, W, instance_top, top, instance_mid, mid, instance_bot, bot)
+    
+    '''try:
+        index             = dcm_name_list.index(instance_id)
+        result            = D3_contours[index]
+        result            = (result).tolist()
+    except:
+        result = []'''
+
+    '''mytest = {
+        "index": dcm_name_list,
+        "coordinate": D3_contours.tolist()
+     }'''
+    
+    mytest = {}
+    for i in range(0, len(dcm_name_list)):
+        mytest[dcm_name_list[i]] = D3_contours[i].tolist()
+    
+       
+    return jsonify(mytest)     
 if __name__ == '__main__':
     app.debug = False
     app.run(host='0.0.0.0', port=5000)    
